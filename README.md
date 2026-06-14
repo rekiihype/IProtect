@@ -165,8 +165,6 @@ Import at least two accounts so you can test different roles (owner vs verifier)
 | Account #0 | `0xf39Fd6e51aad88F6f4ce6aB8827279cffFb92266` | Deployer / Admin |
 | Account #1 | `0x70997970C51812dc3A010C7d01b50e0d17dc79C8` | Verifier (after Step 6) |
 
-> ⚠️ These are **test private keys** that are publicly known. Never use them on a real network or send real funds to them.
-
 ### 5.3 Reset account nonce (if transactions fail after restarting the node)
 
 Every time you restart `npx hardhat node`, the blockchain resets. MetaMask keeps the old nonce and transactions will fail. Fix it by:
@@ -175,7 +173,7 @@ MetaMask → Settings → Advanced → **Clear activity and nonce data** (for ea
 
 ---
 
-## 6. Grant the Verifier Role *(optional)* THIS IS IF YOU DONT HAVE ACCESS TO VERIFY IP, THEN WE USE THIS SCRIPT TO GRANT VERIFIER ROLE TO THAT WALLET ADDRESS
+## 6. [*optional*] Grant the Verifier Role. THIS IS IF YOU DONT HAVE ACCESS TO VERIFY IP, THEN WE USE THIS SCRIPT TO GRANT VERIFIER ROLE TO THAT WALLET ADDRESS
 
 By default, only **Account #0** (the deployer) has the admin role. To allow **Account #1** to verify IP records, run the grant script.
 
