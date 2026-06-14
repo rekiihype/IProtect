@@ -42,7 +42,7 @@ npm -v
 ## 2. Clone the Repository
 
 ```bash
-git clone <YOUR_REPO_URL>
+git clone https://github.com/rekiihype/IProtect.git
 cd IProtect
 ```
 
