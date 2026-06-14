@@ -265,8 +265,6 @@ VITE_PINATA_JWT=paste_your_jwt_token_here
 
 Replace `paste_your_jwt_token_here` with the JWT you copied.
 
-> ⚠️ **Never commit `.env` to git.** It is already in `.gitignore`. Your friends must each create their own key.
-
 ---
 
 ## 9. Frontend Setup
