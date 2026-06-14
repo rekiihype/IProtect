@@ -90,8 +90,6 @@ You should see:
 Compilation finished successfully
 ```
 
-> ⚠️ **Hardhat v3 note:** The compile command is now `build`. Using `npx hardhat compile` will give an error.
-
 ---
 
 ## 4. Start the Local Blockchain & Deploy the Contract
@@ -115,7 +113,7 @@ Private Key: 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
 ...
 ```
 
-> 💡 Copy and save the private keys for Account #0 and Account #1 — you'll import them into MetaMask.
+> NOTICE HERE GUYS💡 Copy and save the private keys for Account #0 and Account #1 — you'll import them into MetaMask.
 
 ### Terminal 2 — Deploy the contract
 
@@ -135,7 +133,7 @@ IPProtection deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 
 ## 5. MetaMask Setup
 
-> ⚠️ Make sure `npx hardhat node` is running **before** clicking Save — MetaMask needs the node live to verify the Chain ID.
+> ⚠️ MAKE SURE `npx hardhat node` is running **before** clicking Save — MetaMask needs the node live to verify the Chain ID.
 
 ### 5.1 Add the Hardhat Local to MetaMask
 
@@ -151,6 +149,8 @@ IPProtection deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 | Block Explorer URL | *(leave blank)* |
 
 3. Click **Save** and switch to **Hardhat Local**.
+
+> Guys, We made this one on our lab, I would suggest if u remove tha lab network and use this new one if you encounter some trouble.
 
 ### 5.2 Import test accounts
 
@@ -175,7 +175,7 @@ MetaMask → Settings → Advanced → **Clear activity and nonce data** (for ea
 
 ---
 
-## 6. Grant the Verifier Role *(optional)*
+## 6. Grant the Verifier Role *(optional)* THIS IS IF YOU DONT HAVE ACCESS TO VERIFY IP, THEN WE USE THIS SCRIPT TO GRANT VERIFIER ROLE TO THAT WALLET ADDRESS
 
 By default, only **Account #0** (the deployer) has the admin role. To allow **Account #1** to verify IP records, run the grant script.
 
@@ -183,7 +183,7 @@ Open `scripts/grantVerifier.ts` and confirm the addresses match:
 
 ```ts
 const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // from Step 4
-const TARGET_ADDRESS   = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1
+const TARGET_ADDRESS   = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Account #1 (OR ANY YOUR TARGET WALLET ADDRESS)
 ```
 
 Then run in Terminal 2 (while Terminal 1 is still running):
