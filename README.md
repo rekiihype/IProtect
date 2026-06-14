@@ -43,7 +43,7 @@ npm -v
 
 ```bash
 git clone <YOUR_REPO_URL>
-cd IPProtection
+cd IProtect
 ```
 
 ---
