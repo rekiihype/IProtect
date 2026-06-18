@@ -1,5 +1,6 @@
 /**
  * grantVerifier.ts
+ * ─────────────────────────────────────────────────────────────────────────────
  * Grants VERIFIER_ROLE to a target address.
  * Must be run by the contract deployer (Account #0 = DEFAULT_ADMIN_ROLE).
  *
@@ -9,10 +10,10 @@
 
 import { network } from "hardhat";
 
-// The deployed contract address — update this after each deployment
+// The deployed contract address
 const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
-// Grant VERIFIER_ROLE to Account #1 (the default verifier test account)
+// Grant VERIFIER_ROLE to Account #1
 const TARGET_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
 async function main() {
@@ -30,7 +31,7 @@ async function main() {
 
   const alreadyGranted = await IPProtection.hasRole(VERIFIER_ROLE, TARGET_ADDRESS);
   if (alreadyGranted) {
-    console.log(`${TARGET_ADDRESS} already has VERIFIER_ROLE — nothing to do.`);
+    console.log(`✅ ${TARGET_ADDRESS} already has VERIFIER_ROLE — nothing to do.`);
     return;
   }
 
@@ -38,7 +39,7 @@ async function main() {
   const tx = await IPProtection.grantRole(VERIFIER_ROLE, TARGET_ADDRESS);
   await tx.wait();
 
-  console.log(`Done! Transaction hash: ${tx.hash}`);
+  console.log(`✅ Done! Transaction hash: ${tx.hash}`);
   console.log(`   ${TARGET_ADDRESS} can now call verifyIPRecord().`);
 }
 

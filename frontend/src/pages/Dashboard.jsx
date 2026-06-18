@@ -43,7 +43,7 @@ export default function Dashboard({ walletAddress }) {
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
 
-      {/* Hero */}
+      {/* ── Hero ── */}
       <div className="mb-16 text-center animate-fade-in-up">
 
         <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight text-gray-900 mb-6">
@@ -55,7 +55,7 @@ export default function Dashboard({ walletAddress }) {
         </p>
       </div>
 
-      {/* Stats Grid */}
+      {/* ── Stats Grid ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
         <StatCard
           label="Total IPs Registered"
@@ -71,14 +71,14 @@ export default function Dashboard({ walletAddress }) {
         />
       </div>
 
-      {/* Error Banner */}
+      {/* ── Error Banner ── */}
       {error && (
         <div className="mb-8 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600">
           {error}
         </div>
       )}
 
-      {/* Feature Cards */}
+      {/* ── Feature Cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
         {[
           {
@@ -119,7 +119,7 @@ export default function Dashboard({ walletAddress }) {
         ))}
       </div>
 
-      {/* CTA */}
+      {/* ── CTA ── */}
       <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center shadow-sm animate-fade-in-up">
         <h2 className="text-3xl font-bold text-gray-900 mb-4 tracking-tight">Ready to protect your work?</h2>
         <p className="text-gray-500 mb-8 max-w-xl mx-auto text-lg">

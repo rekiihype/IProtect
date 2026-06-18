@@ -20,7 +20,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard walletAddress={walletAddress} />} />
         <Route path="/register" element={<RegisterIP />} />
+        {/* VerifySearch gets walletAddress to show/hide the Verify button */}
         <Route path="/verify" element={<VerifySearch walletAddress={walletAddress} />} />
+        {/* TransferManage gets walletAddress to fetch owned IPs and redirect if not connected */}
         <Route path="/manage" element={<TransferManage walletAddress={walletAddress} />} />
       </Routes>
     </BrowserRouter>

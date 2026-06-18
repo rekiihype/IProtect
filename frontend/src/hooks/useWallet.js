@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
 
+// ─── useWallet ─────────────────────────────────────────────────────────────
+// Named export — App.jsx imports this as: import { useWallet } from "./hooks/useWallet"
+// Do NOT convert to a default export.
+//
+// isCorrectNetwork defaults to null (not false) so WalletBanner can distinguish:
+//   null  → wallet not yet connected (show yellow "please connect" banner)
+//   false → connected but wrong network (show red "wrong network" banner)
+//   true  → connected + correct network (no banner)
+// ─────────────────────────────────────────────────────────────────────────────
 export function useWallet() {
   const [walletAddress, setWalletAddress] = useState(null);
   const [isCorrectNetwork, setIsCorrectNetwork] = useState(null);
@@ -7,6 +16,7 @@ export function useWallet() {
   // Supported chain IDs
   const SUPPORTED_CHAINS = {
     "0x7a69": "Hardhat Local (31337)",
+    "0x539":  "Ganache Local (1337)",
     "0xaa36a7": "Sepolia Testnet",
   };
 
@@ -34,6 +44,7 @@ export function useWallet() {
   useEffect(() => {
     if (!window.ethereum) return;
 
+    // Auto-update address when user switches accounts in MetaMask
     const handleAccountsChanged = (accounts) => {
       if (accounts.length === 0) {
         setWalletAddress(null);
@@ -43,6 +54,7 @@ export function useWallet() {
       }
     };
 
+    // Reload page when user switches networks — avoids stale chain state
     const handleChainChanged = () => {
       window.location.reload();
     };
@@ -50,6 +62,7 @@ export function useWallet() {
     window.ethereum.on("accountsChanged", handleAccountsChanged);
     window.ethereum.on("chainChanged", handleChainChanged);
 
+    // Cleanup listeners on unmount
     return () => {
       window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
       window.ethereum.removeListener("chainChanged", handleChainChanged);

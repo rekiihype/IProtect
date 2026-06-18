@@ -1,4 +1,8 @@
-// ─── TransactionStatus ───────────────────────────────────────────────────────────────────
+// ─── TransactionStatus ─────────────────────────────────────────────────────
+// Props:
+//   status: "idle" | "pending" | "confirmed" | "failed"
+// ─────────────────────────────────────────────────────────────────────────────
+
 const STATUS_CONFIG = {
   pending: {
     text: "Transaction pending...",

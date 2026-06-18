@@ -2,6 +2,7 @@ import { useState } from "react";
 import TransactionStatus from "../components/TransactionStatus";
 import { getSigner, getContract } from "../utils/contractUtils";
 
+// ─── Pinata Upload ──────────────────────────────────────────────────────────
 async function uploadToIPFS(file) {
   if (!import.meta.env.VITE_PINATA_JWT) {
     throw new Error(
@@ -29,24 +30,27 @@ async function uploadToIPFS(file) {
   return data.IpfsHash;
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// ─── RegisterIP Page ─────────────────────────────────────────────────────────
 export default function RegisterIP() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState(null);
 
   const [ipfsHash, setIpfsHash] = useState(null);
-  const [ipfsStatus, setIpfsStatus] = useState("idle");
-  const [txStatus, setTxStatus] = useState("idle");
+  const [ipfsStatus, setIpfsStatus] = useState("idle"); // idle | uploading | done | error
+  const [txStatus, setTxStatus] = useState("idle");     // idle | pending | confirmed | failed
 
   const [registeredId, setRegisteredId] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
+  // ── Step 1: Upload to IPFS ──
   async function handleIPFSUpload() {
     if (!file) return;
     setIpfsStatus("uploading");
@@ -62,6 +66,7 @@ export default function RegisterIP() {
     }
   }
 
+  // ── Step 2: Register on blockchain ──
   async function handleRegister() {
     if (!title.trim()) {
       setErrorMsg("Title cannot be empty.");
@@ -80,6 +85,7 @@ export default function RegisterIP() {
       const tx = await contract.registerIP(title.trim(), description.trim(), ipfsHash);
       const receipt = await tx.wait();
 
+      // Extract ipId from IPRegistered event
       const event = receipt.events?.find((e) => e.event === "IPRegistered");
       const ipId = event?.args?.ipId?.toNumber();
       setRegisteredId(ipId ?? "Confirmed");
@@ -87,6 +93,7 @@ export default function RegisterIP() {
       setTxStatus("confirmed");
     } catch (err) {
       console.error(err);
+      // Surface contract revert reason
       const reason = err?.reason || err?.data?.message || err?.message || "Unknown error";
       setErrorMsg(`Registration failed: ${reason}`);
       setTxStatus("failed");
@@ -108,6 +115,8 @@ export default function RegisterIP() {
   return (
     <main className="mx-auto max-w-2xl px-4 sm:px-6 py-12">
       <div className="animate-fade-in-up">
+
+        {/* ── Header ── */}
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 mb-4 shadow-sm">
             Creator Role
@@ -120,6 +129,7 @@ export default function RegisterIP() {
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm space-y-6">
 
+          {/* ── Title ── */}
           <div>
             <label htmlFor="ip-title" className="block text-sm font-medium text-gray-700 mb-2">
               Title <span className="text-red-500">*</span>
@@ -134,6 +144,7 @@ export default function RegisterIP() {
             />
           </div>
 
+          {/* ── Description ── */}
           <div>
             <label htmlFor="ip-description" className="block text-sm font-medium text-gray-700 mb-2">
               Description <span className="text-gray-400 font-normal">(optional)</span>
@@ -148,6 +159,7 @@ export default function RegisterIP() {
             />
           </div>
 
+          {/* ── File Upload ── */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               File <span className="text-red-500">*</span>
@@ -175,40 +187,48 @@ export default function RegisterIP() {
             </label>
           </div>
 
+          {/* ── Step 1 Button: Upload to IPFS ── */}
           <button
             id="btn-upload-ipfs"
             onClick={handleIPFSUpload}
             disabled={!file || ipfsStatus === "uploading" || ipfsStatus === "done"}
-            className="w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 border border-gray-200 hover:border-black text-gray-900"
+            className="w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+              bg-gray-100 border border-gray-200 hover:border-black text-gray-900"
           >
             {ipfsStatus === "uploading" && "Uploading to IPFS..."}
             {ipfsStatus === "done" && `Uploaded — CID: ${ipfsHash?.slice(0, 12)}…`}
             {(ipfsStatus === "idle" || ipfsStatus === "error") && "Step 1 — Upload File to IPFS"}
           </button>
 
+          {/* ── Step 2 Button: Register on Blockchain ── */}
           <button
             id="btn-register-blockchain"
             onClick={handleRegister}
             disabled={!ipfsHash || txStatus === "pending" || txStatus === "confirmed"}
-            className="w-full rounded-xl bg-black hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-3 text-sm font-semibold text-white transition-all duration-200"
+            className="w-full rounded-xl bg-black hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed
+              px-4 py-3 text-sm font-semibold text-white transition-all duration-200"
           >
             {txStatus === "pending" ? "Registering..." : "Step 2 — Register on Blockchain"}
           </button>
 
+          {/* ── Error Message ── */}
           {errorMsg && (
             <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
               {errorMsg}
             </div>
           )}
 
+          {/* ── Transaction Status ── */}
           <TransactionStatus status={txStatus} />
 
+          {/* ── Success ── */}
           {txStatus === "confirmed" && registeredId !== null && (
             <div className="rounded-xl border border-green-200 bg-green-50 p-6 text-center">
               <h2 className="text-lg font-bold text-green-800 mb-1 tracking-tight">Registration Complete</h2>
               <p className="text-sm text-green-700 mb-4">
                 Your IP has been assigned <strong className="font-semibold">ID #{registeredId}</strong>
               </p>
+              
               {ipfsHash && (
                 <div className="rounded-xl border border-green-200 bg-white px-4 py-3 text-left">
                   <div className="flex items-center justify-between mb-1">
@@ -216,6 +236,7 @@ export default function RegisterIP() {
                     <button
                       onClick={() => navigator.clipboard.writeText(ipfsHash)}
                       className="text-xs text-blue-600 hover:text-blue-700 font-medium transition"
+                      title="Copy CID"
                     >
                       Copy
                     </button>

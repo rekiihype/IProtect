@@ -1,7 +1,9 @@
 import { useState } from "react";
 import TransactionStatus from "../components/TransactionStatus";
+import { ethers } from "ethers";
 import { getProvider, getSigner, getContract } from "../utils/contractUtils";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function truncateAddress(address) {
   if (!address) return "";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -11,7 +13,8 @@ function formatTimestamp(bigNumber) {
   return new Date(bigNumber.toNumber() * 1000).toLocaleString();
 }
 
-function IPRecordCard({ record, walletAddress, onVerify, verifyStatus }) {
+// ─── IPRecordCard ─────────────────────────────────────────────────────────────
+function IPRecordCard({ record, walletAddress, onVerify, verifyStatus, donateAmount, setDonateAmount, onDonate, donateStatus, donateError, donateConfirm }) {
   const isVerified = record.isVerified;
 
   return (
@@ -61,6 +64,7 @@ function IPRecordCard({ record, walletAddress, onVerify, verifyStatus }) {
         </div>
       </div>
 
+      {/* ── Verify action ── */}
       {!isVerified && walletAddress && (
         <div className="border-t border-gray-100 pt-5 mt-2">
           <p className="text-xs text-gray-500 mb-3">
@@ -70,19 +74,61 @@ function IPRecordCard({ record, walletAddress, onVerify, verifyStatus }) {
             id="btn-verify-record"
             onClick={onVerify}
             disabled={verifyStatus === "pending" || verifyStatus === "confirmed"}
-            className="rounded-xl border border-gray-200 bg-white hover:border-black text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2.5 text-sm font-medium transition-all"
+            className="rounded-xl border border-gray-200 bg-white hover:border-black text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed
+              px-5 py-2.5 text-sm font-medium transition-all"
           >
             {verifyStatus === "pending" ? "Verifying..." : "Verify this Record"}
           </button>
           <TransactionStatus status={verifyStatus} />
         </div>
       )}
+
+      {/* ── Donate action ── */}
+      {walletAddress && walletAddress.toLowerCase() !== record.owner?.toLowerCase() && (
+        <div className="border-t border-gray-100 pt-5 mt-2">
+          <p className="text-xs text-gray-500 mb-3">
+            <strong className="text-gray-700 font-semibold">Support Creator:</strong> Send ETH directly to the IP owner.
+          </p>
+          {donateConfirm ? (
+            <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+              <p className="font-semibold">Donation confirmed</p>
+              <p className="font-mono text-xs mt-1">{donateConfirm.amount} ETH sent to {donateConfirm.recipient}</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  value={donateAmount}
+                  onChange={(e) => setDonateAmount(e.target.value)}
+                  placeholder="Amount in ETH"
+                  className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black transition"
+                />
+                <button
+                  onClick={onDonate}
+                  disabled={!donateAmount || donateStatus === "pending"}
+                  className="rounded-xl border border-gray-200 bg-white hover:border-black text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2.5 text-sm font-medium transition-all"
+                >
+                  {donateStatus === "pending" ? "Sending..." : "Donate"}
+                </button>
+              </div>
+              {donateError && (
+                <p className="mt-2 text-xs text-red-600">{donateError}</p>
+              )}
+              <TransactionStatus status={donateStatus} />
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
+// ─── VerifySearch Page ────────────────────────────────────────────────────────
 export default function VerifySearch({ walletAddress }) {
-  const [mode, setMode] = useState("id");
+  const [mode, setMode] = useState("id"); // "id" | "hash"
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -93,17 +139,29 @@ export default function VerifySearch({ walletAddress }) {
   const [verifyStatus, setVerifyStatus] = useState("idle");
   const [verifyError, setVerifyError] = useState(null);
 
+  const [donateAmount, setDonateAmount] = useState("");
+  const [donateStatus, setDonateStatus] = useState("idle");
+  const [donateError, setDonateError] = useState(null);
+  const [donateConfirm, setDonateConfirm] = useState(null); // { amount, recipient }
+
+  // ── Search by IP ID ──
   async function handleSearchById() {
     const id = parseInt(input.trim(), 10);
     if (!input.trim() || isNaN(id) || id <= 0) {
       setSearchError("Please enter a valid IP ID (a positive number).");
       return;
     }
+
     setLoading(true);
     setRecord(null);
     setSearchError(null);
     setVerifyStatus("idle");
     setVerifyError(null);
+    setDonateStatus("idle");
+    setDonateError(null);
+    setDonateAmount("");
+    setDonateConfirm(null);
+
     try {
       const provider = await getProvider();
       const contract = getContract(provider);
@@ -117,23 +175,34 @@ export default function VerifySearch({ walletAddress }) {
     }
   }
 
+  // ── Search by IPFS Hash (CID) ──
   async function handleSearchByHash() {
     const hash = input.trim();
     if (!hash) {
       setSearchError("Please enter an IPFS hash (CID).");
       return;
     }
+
     setLoading(true);
     setHashResult(null);
     setRecord(null);
     setSearchError(null);
     setVerifyStatus("idle");
     setVerifyError(null);
+    setDonateStatus("idle");
+    setDonateError(null);
+    setDonateAmount("");
+    setDonateConfirm(null);
+
     try {
       const provider = await getProvider();
       const contract = getContract(provider);
+
+      // Step 1: Quick boolean check
       const isRegistered = await contract.isHashRegistered(hash);
       setHashResult(isRegistered);
+
+      // Step 2: If registered, scan all IPs to find the matching full record
       if (isRegistered) {
         const totalCount = await contract.getTotalIPCount();
         const total = totalCount.toNumber();
@@ -158,9 +227,35 @@ export default function VerifySearch({ walletAddress }) {
     else handleSearchByHash();
   }
 
+  // ── Donate to IP owner ──
+  async function handleDonate() {
+    if (!record || !donateAmount) return;
+    const ipId = record.ipId?.toNumber();
+    const recipient = record.owner;
+    const amount = donateAmount;
+    setDonateStatus("pending");
+    setDonateError(null);
+    try {
+      const signer = await getSigner();
+      const contract = getContract(signer);
+      const tx = await contract.donateToOwner(ipId, {
+        value: ethers.utils.parseEther(amount),
+      });
+      await tx.wait();
+      setDonateStatus("confirmed");
+      setDonateConfirm({ amount, recipient });
+      setDonateAmount("");
+    } catch (err) {
+      setDonateStatus("failed");
+      setDonateError(err?.reason || err?.data?.message || err?.message || "Donation failed.");
+    }
+  }
+
+  // ── Verify IP Record (VERIFIER_ROLE required) ──
   async function handleVerify() {
     if (!record) return;
     const ipId = record.ipId?.toNumber();
+
     setVerifyStatus("pending");
     setVerifyError(null);
     try {
@@ -169,6 +264,8 @@ export default function VerifySearch({ walletAddress }) {
       const tx = await contract.verifyIPRecord(ipId);
       await tx.wait();
       setVerifyStatus("confirmed");
+
+      // Reload the record
       const provider = await getProvider();
       const readContract = getContract(provider);
       const updated = await readContract.getIPDetails(ipId);
@@ -187,14 +284,19 @@ export default function VerifySearch({ walletAddress }) {
   return (
     <main className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
       <div className="animate-fade-in-up">
+
+        {/* ── Header ── */}
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 mb-4 shadow-sm">
             Public Access
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Verify & Search</h1>
-          <p className="text-gray-500 text-sm">Look up any IP record by its ID or IPFS CID. No wallet required to search.</p>
+          <p className="text-gray-500 text-sm">
+            Look up any IP record by its ID or IPFS CID. No wallet required to search.
+          </p>
         </div>
 
+        {/* ── Mode Toggle ── */}
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm mb-6">
           <div className="flex gap-2 mb-6">
             {[
@@ -205,7 +307,9 @@ export default function VerifySearch({ walletAddress }) {
                 key={key}
                 onClick={() => { setMode(key); setInput(""); setRecord(null); setHashResult(null); setSearchError(null); }}
                 className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${
-                  mode === key ? "bg-black text-white" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  mode === key
+                    ? "bg-black text-white"
+                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
                 }`}
               >
                 {label}
@@ -240,17 +344,24 @@ export default function VerifySearch({ walletAddress }) {
           )}
         </div>
 
+        {/* ── Hash Result banner ── */}
         {hashResult !== null && (
           <div className={`bg-white rounded-2xl p-6 mb-4 animate-fade-in-up border shadow-sm ${
             hashResult ? "border-green-200" : "border-red-200"
           }`}>
-            <p className={`font-bold tracking-tight mb-1 ${hashResult ? "text-green-800" : "text-red-800"}`}>
-              {hashResult ? "Hash is registered on-chain" : "Hash is NOT registered"}
-            </p>
-            <p className="text-xs text-gray-500 font-mono break-all">{input}</p>
+            <div className="min-w-0">
+              <p className={`font-bold tracking-tight mb-1 ${hashResult ? "text-green-800" : "text-red-800"}`}>
+                {hashResult ? "Hash is registered on-chain" : "Hash is NOT registered"}
+              </p>
+              <p className="text-xs text-gray-500 font-mono break-all">{input}</p>
+              {hashResult && !record && (
+                <p className="text-sm text-gray-500 mt-2">Loading record details...</p>
+              )}
+            </div>
           </div>
         )}
 
+        {/* ── IP Record Card ── */}
         {record && (
           <div className="space-y-4">
             <IPRecordCard
@@ -258,6 +369,12 @@ export default function VerifySearch({ walletAddress }) {
               walletAddress={walletAddress}
               onVerify={handleVerify}
               verifyStatus={verifyStatus}
+              donateAmount={donateAmount}
+              setDonateAmount={setDonateAmount}
+              onDonate={handleDonate}
+              donateStatus={donateStatus}
+              donateError={donateError}
+              donateConfirm={donateConfirm}
             />
             {verifyError && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -266,6 +383,7 @@ export default function VerifySearch({ walletAddress }) {
             )}
           </div>
         )}
+
       </div>
     </main>
   );

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 
+// Shorten a wallet address: "0x1234...abcd"
 function truncateAddress(address) {
   if (!address) return "";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -18,6 +19,7 @@ export default function Navbar({ walletAddress, connectWallet, disconnectWallet 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -33,6 +35,7 @@ export default function Navbar({ walletAddress, connectWallet, disconnectWallet 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
 
+          {/* ── Logo ── */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black transition-colors">
               <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-white" stroke="currentColor" strokeWidth="2">
@@ -42,6 +45,7 @@ export default function Navbar({ walletAddress, connectWallet, disconnectWallet 
             <span className="text-lg font-semibold tracking-tight text-gray-900">IProtect</span>
           </Link>
 
+          {/* ── Nav Links ── */}
           <div className="hidden md:flex items-center gap-1">
             {NAV_LINKS.map(({ to, label }) => {
               const isActive = location.pathname === to;
@@ -61,6 +65,7 @@ export default function Navbar({ walletAddress, connectWallet, disconnectWallet 
             })}
           </div>
 
+          {/* ── Wallet Button / Dropdown ── */}
           {walletAddress ? (
             <div className="relative" ref={dropdownRef}>
               <button
@@ -120,6 +125,7 @@ export default function Navbar({ walletAddress, connectWallet, disconnectWallet 
 
         </div>
 
+        {/* ── Mobile Nav ── */}
         <div className="flex md:hidden gap-1 pb-2 overflow-x-auto">
           {NAV_LINKS.map(({ to, label }) => {
             const isActive = location.pathname === to;
