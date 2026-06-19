@@ -56,8 +56,6 @@ npm install
 npx hardhat build
 ```
 
-> ⚠️ This project uses Hardhat v3. The compile command is `build`, not `compile`.
-
 ---
 
 ## 4. Start the Blockchain & Deploy
