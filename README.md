@@ -98,9 +98,15 @@ The deploy script will print the contract address. If you used the mnemonic abov
 IPProtection deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
 
-> ⚠️ **If the address is different**, your Account #0 had prior transactions on this Ganache instance. You must update `frontend/src/contracts/contract.js` line 12 with the printed address:
+> ⚠️ **If the address is different**, your Account #0 had prior transactions on this Ganache instance. You must update **both** files with the printed address:
+>
+> `frontend/src/contracts/contract.js` line 12:
 > ```js
 > export const CONTRACT_ADDRESS = "paste_your_deployed_address_here";
+> ```
+> `scripts/grantVerifier.ts` line 14:
+> ```ts
+> const CONTRACT_ADDRESS = "paste_your_deployed_address_here";
 > ```
 > To get the deterministic address back: restart Ganache (gear icon → Restart) to reset the blockchain, then redeploy.
 
