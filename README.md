@@ -93,10 +93,16 @@ npx hardhat run scripts/grantVerifier.ts --network localhost
 
 ---
 
-The deploy script will print the contract address. If you used the mnemonic above, it will always be:
+The deploy script will print the contract address. If you used the mnemonic above **and Ganache was freshly restarted** (Account #0 has no prior transactions), it will always be:
 ```
 IPProtection deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 ```
+
+> ⚠️ **If the address is different**, your Account #0 had prior transactions on this Ganache instance. You must update `frontend/src/contracts/contract.js` line 12 with the printed address:
+> ```js
+> export const CONTRACT_ADDRESS = "paste_your_deployed_address_here";
+> ```
+> To get the deterministic address back: restart Ganache (gear icon → Restart) to reset the blockchain, then redeploy.
 
 ---
 
